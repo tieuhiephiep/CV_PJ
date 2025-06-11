@@ -94,27 +94,44 @@ def main():
     
     # Initialize video capture
     cap = cv2.VideoCapture(0)
+    win_name = 'Emotion Detection'
+    # Đặt kích thước cửa sổ mặc định vừa phải
+    cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(win_name, 900, 700)  # Kích thước vừa phải khi mới mở
+    first_show = True
     
     while True:
         ret, frame = cap.read()
         if not ret:
             break
         
+        # Lật khung hình để không bị ngược
+        frame = cv2.flip(frame, 1)
         # Detect emotions
         frame = detector.detect_emotion(frame)
-        
-        # Display frame
-        cv2.imshow('Emotion Detection', frame)
-        
-        # Check for exit
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+
+        if first_show:
+            cv2.imshow(win_name, frame)
+            first_show = False
+        else:
+            try:
+                x, y, w, h = cv2.getWindowImageRect(win_name)
+                if w > 0 and h > 0:
+                    frame_resized = cv2.resize(frame, (w, h))
+                else:
+                    frame_resized = frame
+                cv2.imshow(win_name, frame_resized)
+            except cv2.error:
+                break
+
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
             break
-        # Reset counters with 'r' key
-        elif cv2.waitKey(1) & 0xFF == ord('r'):
+        elif key == ord('r'):
             detector.reset_counts()
     
     cap.release()
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    main() 
+    main()
